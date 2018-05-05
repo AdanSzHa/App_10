@@ -234,7 +234,6 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
                 String backupDBPath = "backupBDD"+CdP+".db";
                 File currentDB = new File(data, currentDBPath);
                 File backupDB = new File(sdDow, backupDBPath);
-                SQLiteToExcel sqliteToExcel = new SQLiteToExcel(this, "backupBDD"+CdP+".db");
                 Toast.makeText(this, "Guardando BDD"+"C:"+CdP, Toast.LENGTH_SHORT).show();
 
                 if (currentDB.exists()) {
