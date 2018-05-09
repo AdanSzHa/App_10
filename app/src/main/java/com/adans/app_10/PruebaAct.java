@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,21 +28,38 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.List;
+import java.util.Random;
+
+import android.graphics.Color;
 
 import static android.os.Environment.DIRECTORY_DOWNLOADS;
 
-public class Sensors extends AppCompatActivity implements SensorEventListener,LocationListener {
+public class PruebaAct extends AppCompatActivity implements SensorEventListener,LocationListener {
 
-    private TextView Gx,Gy,Gz,Ax,Ay,Az;
 
     Button btnMostrar;
 
     private Handler mHandler = new Handler();
 
-    //////
+    //Delay en sensores y Handler
+    public int dly=1;
 
-    TextView locationText;
-    TextView locationText2;
+    //Var Boolean estado del GPS
+    boolean EDOGPSBoo=false;
+
+    //tv y imageview Indicador;
+    TextView tvVel;
+    Button btnIndic;
+    int Veld = 40;
+
+    //////
+    ImageView ivCel;
+    TextView tvNot1,tvNot2;
+    TextView EdoGPS;
+    //TextView locationText;
+    //TextView locationText2;
+
+    Button Start,Stop,Mostrar;
 
     LocationManager locationManager;
     //////
@@ -52,9 +70,42 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
     int CdP=1;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_prueba);
+
+
+        ivCel=(ImageView)findViewById(R.id.ivCel);
+        tvNot1=(TextView)findViewById(R.id.tvNot1);
+        tvNot2=(TextView)findViewById(R.id.tvNot2);
+
+        Start=(Button)findViewById(R.id.btnStart);
+
+        Stop=(Button)findViewById(R.id.btnStop);
+        Stop.setVisibility(View.GONE);
+
+        Mostrar=(Button)findViewById(R.id.btnMostrar);
+        Mostrar.setVisibility(View.GONE);
+
+        EdoGPS=(TextView)findViewById(R.id.tvEdoGPS);
+
+        tvVel=(TextView)findViewById(R.id.tvVel);
+        tvVel.setVisibility(View.GONE);
+        btnIndic=(Button) findViewById(R.id.btnIndic);
+        btnIndic.setVisibility(View.GONE);
+
+        ////Recibe nombre Bundle
+        Bundle XBundle=PruebaAct.this.getIntent().getExtras();
+
+        if (XBundle!=null){
+            String Nombre = XBundle.getString("nomb");
+        }
+
+        ////
+///
 
         //permisos usuario
         /////////
@@ -64,22 +115,6 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
         }
         /////////
 
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensors);
-
-
-        Ax= (TextView) findViewById(R.id.tvAx);
-        Ay= (TextView) findViewById(R.id.tvAy);
-        Az= (TextView) findViewById(R.id.tvAz);
-
-        Gx= (TextView) findViewById(R.id.tvGx);
-        Gy= (TextView) findViewById(R.id.tvGy);
-        Gz= (TextView) findViewById(R.id.tvGz);
-        ////
-        locationText = (TextView)findViewById(R.id.tvLoc);
-        locationText2 = (TextView)findViewById(R.id.tvLoc2);
-        ////
         btnMostrar=(Button)findViewById(R.id.btnMostrar);
 
         SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -117,7 +152,6 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
     void getLocation() {
 
         try {
-            int dly=1;
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, dly*1000, 1, this);
         }
@@ -139,19 +173,13 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
                     VAY=event.values[1];
                     VAZ=event.values[2];
 
-                    this.Ax.setText("AX ="+VAX);
-                    this.Ay.setText("AY ="+VAY);
-                    this.Az.setText("AZ ="+VAZ);
-
                     break;
+
                 case Sensor.TYPE_GYROSCOPE:
                     VGX=event.values[0];
                     VGY=event.values[1];
                     VGZ=event.values[2];
 
-                    this.Gx.setText("GX ="+VGX);
-                    this.Gy.setText("GY ="+VGY);
-                    this.Gz.setText("GZ ="+VGZ);
                     break;
             }
         }
@@ -159,17 +187,36 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
 
     ///BtnStar
     public void startRepeating(View v) {
-        //mHandler.postDelayed(mToastRunnable, 5000);
-        int dly=1;
-        mToastRunnable.run();
-        Toast.makeText(this, "Guardando Datos, Cada "+dly+" Segundos", Toast.LENGTH_SHORT).show();
+
+
+        if(EDOGPSBoo=true) {
+            //mHandler.postDelayed(mToastRunnable, 5000);
+            mToastRunnable.run();
+            Toast.makeText(this, "Guardando Datos, Cada " + dly + " Segundos", dly * 1000).show();
+
+            Stop.setVisibility(View.VISIBLE);
+
+            ivCel.setVisibility(View.GONE);
+            tvNot1.setVisibility(View.GONE);
+            tvNot2.setVisibility(View.GONE);
+            EdoGPS.setVisibility(View.GONE);
+            Start.setVisibility(View.GONE);
+
+            btnIndic.setVisibility(View.VISIBLE);
+            tvVel.setVisibility(View.VISIBLE);
+
+
+        }
+        else {Toast.makeText(getApplicationContext(),"Espera la conexión del GPS",Toast.LENGTH_LONG).show();
+        }
     }
 
     ///BtnStop
     public void stopRepeating(View v) {
         mHandler.removeCallbacks(mToastRunnable);
         exportDatabse("BDDSensors");
-
+        Intent intentE = new Intent(getApplicationContext(),GasYEmisAct.class);
+        startActivity(intentE);
     }
 
     private Runnable mToastRunnable = new Runnable() {
@@ -181,9 +228,23 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
 
             mantBDD.agregarCurso(VAX,VAY,VAZ,VGX,VAY,VAZ,LAT,LOG);
 
+            //Valor random
+            final int min = 0;
+            final int max = 110;
+            final int Vrandom = new Random().nextInt((max - min) + 1) + min;
+            tvVel.setText(Vrandom+" Km");
+            if(Vrandom>0&& Vrandom<40){
+                btnIndic.setBackgroundColor(Color.BLUE);
+            }
+            if(Vrandom>40&& Vrandom<70){
+                btnIndic.setBackgroundColor(Color.GREEN);
+            }
+            if(Vrandom>70&& Vrandom<110){
+                btnIndic.setBackgroundColor(Color.RED);
+            }
             //  Toast.makeText(getApplicationContext(),"Se agregaron correctamente",Toast.LENGTH_SHORT).show();
-            int dly=1;//Segundos
-            mHandler.postDelayed(this, dly*1000);
+            int dlyto=1;//Segundos
+            mHandler.postDelayed(this, dlyto*1000);
         }
     };
 
@@ -199,8 +260,11 @@ public class Sensors extends AppCompatActivity implements SensorEventListener,Lo
         LAT= (float) location.getLatitude();
         LOG= (float) location.getLongitude();
 
-        locationText.setText("Latitude: " + location.getLatitude());
-        locationText2.setText("Longitude: " + location.getLongitude());
+        if (LAT != 0) {
+            EdoGPS.setText("Conexión con GPS Disponible.");
+            EDOGPSBoo=true;
+        }
+
     }
 
     @Override

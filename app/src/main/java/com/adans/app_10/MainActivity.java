@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     //Declaration EditTexts
-    EditText editTextEmail;
+    public EditText editTextEmail;
     EditText editTextPassword;
 
     //Declaration TextInputLayout
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -71,9 +72,14 @@ public class MainActivity extends AppCompatActivity {
                         Snackbar.make(buttonLogin, "Inicio de sesión exitosos", Snackbar.LENGTH_LONG).show();
 
                         //User Logged in Successfully Launch You home screen activity
-                       Intent intent=new Intent(MainActivity.this,Sensors.class);
-                        startActivity(intent);
-                        finish();
+                       Intent intent=new Intent(MainActivity.this,PerfilAct.class);
+
+                       Bundle MBund = new Bundle();
+                       MBund.putString("Email",editTextEmail.getText().toString());
+                       intent.putExtras(MBund);
+                       startActivity(intent);
+
+                       finish();
                     } else {
 
                         //User Logged in Failed
@@ -88,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     //this method used to set Create account TextView text and click event( maltipal colors
     // for TextView yet not supported in Xml so i have done it programmatically)
     private void initCreateAccountTextView() {
@@ -98,8 +105,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, RegU.class);
                 startActivity(intent);
+                Clean();
+
             }
         });
+    }
+
+    //Clean EditTexts
+    private void Clean() {
+        editTextEmail.setText("");
+        editTextPassword.setText("");
     }
 
     //this method is used to connect XML views to its Objects
